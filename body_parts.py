@@ -84,13 +84,15 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
     return Position(*joint_attachment_point)
     
 def create_random_sized_body_piece(upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.2), Dimensions(1.4, 1.4, 1.4)))
+    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-    center:Position = element_wise_multiplication_xyz(
+    center:Position = add_xyz(
+        upstream_position,
+        element_wise_multiplication_xyz(
             scalar_multiplication_xyz(
                 -0.5,
                 size),
-            child_attachment_point.value)
+            child_attachment_point.value))
 
     pyrosim.Send_Cube(
         name=str(piece_id),
@@ -100,13 +102,15 @@ def create_random_sized_body_piece(upstream_position: Position, child_attachment
     return center, size
 
 def create_random_sized_sensor_piece(upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.2), Dimensions(1.4, 1.4, 1.4)))
+    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-    center:Position = element_wise_multiplication_xyz(
+    center:Position = add_xyz(
+        upstream_position,
+        element_wise_multiplication_xyz(
             scalar_multiplication_xyz(
                 -0.5,
                 size),
-            child_attachment_point.value)
+            child_attachment_point.value))
 
     pyrosim.Send_Cube(
         name=str(piece_id),
