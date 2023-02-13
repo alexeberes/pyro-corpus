@@ -12,6 +12,7 @@ class Simulation:
             self.physics_client = pblt.connect(pblt.DIRECT)
         elif self.pblt_mthd == "GUI":
             self.physics_client = pblt.connect(pblt.GUI)
+            pblt.configureDebugVisualizer(pblt.COV_ENABLE_GUI,0)
         else:
             raise ValueError("Valid pybullet connection method required")
 

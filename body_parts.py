@@ -62,7 +62,7 @@ def scalar_multiplication_xyz(scalar: float, xyz_tuple: Union[Position, Dimensio
 def element_wise_multiplication_xyz(xyz_tuple1: Union[Position, Dimensions, tuple[float, float, float]], xyz_tuple2: Union[Position, Dimensions, tuple[float, float, float]]) -> tuple[float, float, float]:
     return tuple(map(lambda var1, var2: var1 * var2, xyz_tuple1, xyz_tuple2))
 
-def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_attachment_element: CubeElement, axis: list[Union[float, int]], current_part_id: int) -> Position:
+def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_attachment_element: CubeElement, axis: list[Union[float, int]], current_part_id: int) -> str:
     joint_name = str(current_part_id) + "_" + str(current_part_id + 1)
 
     joint_attachment_point = add_xyz(
@@ -82,7 +82,7 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
         position=list(joint_attachment_point),
         axis=axis)
     
-    return Position(*joint_attachment_point)
+    return joint_name
 
 class BodyPart():
 
