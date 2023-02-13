@@ -2,7 +2,7 @@
 
 Simulating random robot body plans using a recursive method.
 
-To run, clone and run `python search.py` in the terminal.
+To run, clone and run `python main.py` in the terminal.
 
 ## Motivation
 
@@ -46,7 +46,6 @@ The recursive method follows the below steps:
 
 The robot's brain is built using a second recursive function that follows the same format.
 It was necessary to split this into two functions because pyrosim is only able to write to one file type at a time.
-
 
 ## Future work
 
