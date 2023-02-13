@@ -1,8 +1,8 @@
 import numpy as np
 
-num_iterations = 10000
+num_iterations = 5000
 
-sleep_time = 0
+sleep_time = 0/60
 
 num_generations = 15
 
