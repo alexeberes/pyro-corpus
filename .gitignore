@@ -153,6 +153,8 @@ cython_debug/
 
 
 *.urdf
+*.nndf
+*.sdf
 
 build_brain.py
 
