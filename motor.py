@@ -2,7 +2,6 @@ import numpy as np
 import pyrosim_modded.pyrosim_modded as pyrosim
 import pybullet as pblt
 from datetime import datetime
-
 import constants as c
 
 class Motor:

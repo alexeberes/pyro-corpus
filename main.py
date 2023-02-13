@@ -4,7 +4,7 @@ from build_body import *
 import simulate_recursive_body
 import pybullet as pblt
 
-for i in range(10):
+for i in range(5):
     solution_id = 0
 
     body_plan = BodyCons(RandomSizedBodyPiece(),
@@ -14,7 +14,7 @@ for i in range(10):
                                   BodyCons(RandomSizedBodyPiece(),
                                            random.randint(1, 3),
                                            BodyCons(RandomSizedSensorPiece(),
-                                                    2,
+                                                    random.randint(1, 3),
                                                     BodyCons(RandomSizedBodyPiece(),
                                                              random.randint(1, 3),
                                                              BodyCons(RandomSizedSensorPiece(),

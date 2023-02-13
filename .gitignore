@@ -156,5 +156,7 @@ cython_debug/
 *.nndf
 *.sdf
 
+media/*
+
 build_brain.py
 
