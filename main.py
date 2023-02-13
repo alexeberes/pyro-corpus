@@ -3,8 +3,9 @@ import random
 from build_body import *
 import simulate_recursive_body
 import pybullet as pblt
+import constants as Cnsts
 
-for i in range(5):
+for i in range(Cnsts.num_random_bodies):
     solution_id = 0
 
     body_plan = BodyCons(RandomSizedBodyPiece(),
