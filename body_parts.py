@@ -4,6 +4,8 @@ from typing import NamedTuple
 from typing import Union
 from enum import Enum
 import random
+from abc import ABC, abstractmethod
+ 
 
 class CubeElement(Enum):
     CENTER              = (0, 0, 0)
@@ -45,7 +47,7 @@ class Dimensions(NamedTuple):
     height: float
 
 class BodyCons(NamedTuple):
-    create_body_part: Union[function, BodyCons]
+    body_part: Union[BodyPart, BodyCons]
     repetitions: int=1
     next_part: Union[BodyCons, list[BodyCons], None]= None
 
@@ -82,39 +84,66 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
         axis=axis)
     
     return Position(*joint_attachment_point)
+
+class BodyPart():
+
+    def __init__(self):
+        self.properties
+
+    def get_properties(self):
+        return self.properties
+
+    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        return self.create_body_part(upstream_position, child_attachment_point, piece_id)
     
-def create_random_sized_body_piece(upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
+class RandomSizedBodyPiece(BodyPart):
+    
+    def __init__(self):
+        self.properties = {
+            'sensor':False
+        }
 
-    center:Position = add_xyz(
-        upstream_position,
-        element_wise_multiplication_xyz(
-            scalar_multiplication_xyz(
-                -0.5,
-                size),
-            child_attachment_point.value))
+    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-    pyrosim.Send_Cube(
-        name=str(piece_id),
-        pos=list(center),
-        size=list(size))
+        center:Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                child_attachment_point.value))
 
-    return center, size
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Blue', [0.0, 0.0, 1.0, 1.0]))
 
-def create_random_sized_sensor_piece(upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-    size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
+        return center, size
+    
+class RandomSizedSensorPiece(BodyPart):
+    
+    def __init__(self):
+        self.properties = {
+            'sensor':True
+        }
 
-    center:Position = add_xyz(
-        upstream_position,
-        element_wise_multiplication_xyz(
-            scalar_multiplication_xyz(
-                -0.5,
-                size),
-            child_attachment_point.value))
+    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-    pyrosim.Send_Cube(
-        name=str(piece_id),
-        pos=list(center),
-        size=list(size))
+        center:Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                child_attachment_point.value))
 
-    return center, size
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Green', [0.0, 1.0, 0.0, 1.0]))
+
+        return center, size
