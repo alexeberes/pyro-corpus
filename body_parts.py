@@ -4,7 +4,6 @@ from typing import NamedTuple
 from typing import Union
 from enum import Enum
 import random
-from abc import ABC, abstractmethod
  
 
 class CubeElement(Enum):
@@ -37,19 +36,19 @@ class CubeElement(Enum):
     BACK_LEFT_BOTTOM    = (-1, -1, -1)
 
 class Position(NamedTuple):
-    x: float
-    y: float
-    z: float
+    x:  float
+    y:  float
+    z:  float
 
 class Dimensions(NamedTuple):
     length: float
-    width: float
+    width:  float
     height: float
 
 class BodyCons(NamedTuple):
-    body_part: Union[BodyPart, BodyCons]
-    repetitions: int=1
-    next_part: Union[BodyCons, list[BodyCons], None]= None
+    body_part:      Union[BodyPart, BodyCons]
+    repetitions:    int=1
+    next_part:      Union[BodyCons, list[BodyCons], None]=None
 
 def create_random_xyz(mins: Union[float, Dimensions, Position], maxes: Union[float, Dimensions, Position]) -> Union[Dimensions, Position]:
     return tuple(mins[index] + (maxes[index] - mins[index]) * random.random() for index in range(3))
@@ -88,7 +87,10 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
 class BodyPart():
 
     def __init__(self):
-        self.properties
+        self.properties = {
+            'sensor':   True,
+            'motor':    True
+        }
 
     def get_properties(self):
         return self.properties
@@ -99,14 +101,13 @@ class BodyPart():
 class RandomSizedBodyPiece(BodyPart):
     
     def __init__(self):
-        self.properties = {
-            'sensor':False
-        }
+        super().__init__()
+        self.properties['sensor'] = False
 
     def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-        center:Position = add_xyz(
+        center: Position = add_xyz(
             upstream_position,
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
@@ -125,14 +126,13 @@ class RandomSizedBodyPiece(BodyPart):
 class RandomSizedSensorPiece(BodyPart):
     
     def __init__(self):
-        self.properties = {
-            'sensor':True
-        }
+        super().__init__()
+        self.properties['sensor'] = True
 
     def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size:Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
-        center:Position = add_xyz(
+        center: Position = add_xyz(
             upstream_position,
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
