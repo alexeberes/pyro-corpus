@@ -1,4 +1,4 @@
-# pyro-corp: Simulated Virtual Robot Body Evolution
+# pyro-corp: Generating simulated virtual robot bodies
 
 Simulating random robot body plans using a recursive method.
 
@@ -8,6 +8,7 @@ To run, clone and run `python main.py` in the terminal.
 
 Natural evolution features mutations and adaptations to not only the brains of organisms, but also their bodies.
 Hence, simulated evolution should also seek to optimize virtual creatures morphologies in addition to their intelligence systems.
+This requires being able to generate virtual robot body plans algorithmically.
 
 Additionally, saving the entire body plan of an organism is inefficient, especially since parts are often replicated.
 Consider biological organisms.
