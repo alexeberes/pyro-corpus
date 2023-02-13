@@ -8,7 +8,7 @@ import numpy as np
 import pyrosim_modded.pyrosim_modded as pyrosim
 
 physicsClient = pblt.connect(pblt.GUI)
-
+pblt.configureDebugVisualizer(pblt.COV_ENABLE_GUI,0)
 pblt.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 pblt.setGravity(0,0,-9.8)
@@ -23,6 +23,6 @@ pyrosim.Prepare_To_Simulate(robot_id)
 
 for i in range(num_iterations):
     pblt.stepSimulation()
-    time.sleep(0.05/60)
+    time.sleep(1/60)
 
 pblt.disconnect()
