@@ -14,7 +14,7 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
         next_part                                       = body_plan.next_part
 
-        current_specification: BuildSpecifications = build_specifications[0] #[:build_specifications.find('.')]
+        current_specification: BuildSpecifications = build_specifications[0]
 
         repetitions = current_specification.repitions
         axis = current_specification.axis
@@ -70,13 +70,14 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
 
 def build_body(body_plan: BodyCons):
-    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, current_part_id: int):
+    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, current_part_id: int):
         body_part: BodyPart                             = body_plan.body_part
         build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
         next_part                                       = body_plan.next_part
 
-        current_specification: BuildSpecifications = build_specifications[0] #[:build_specifications.find('.')]
+        current_specification: BuildSpecifications = build_specifications[0]
 
+        direction_to_build = current_specification.direction_to_build
         repetitions = current_specification.repitions
         axis = current_specification.axis
 
@@ -85,7 +86,7 @@ def build_body(body_plan: BodyCons):
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
-            child_attachment_point=CubeElement.BACK,
+            attachment_point_on_child=get_opposite_cube_element(upstream_cube_element),
             piece_id=current_part_id)
         
         repetitions_left = repetitions - 1
@@ -96,7 +97,7 @@ def build_body(body_plan: BodyCons):
         joint_name: str = create_joint(
             upstream_center=my_center,
             parent_part_size=my_size,
-            joint_attachment_element=CubeElement.FRONT,
+            joint_attachment_element=direction_to_build,
             axis=axis,
             current_part_id=current_part_id)
         
@@ -109,25 +110,28 @@ def build_body(body_plan: BodyCons):
                 next_part=next_part.next_part)
             return joint_names + build_body_recursively(body_plan=next_body_plan,
                                           upstream_position=(0, 0, 0),
+                                          upstream_cube_element=direction_to_build,
                                           current_part_id=current_part_id + 1)
         
-        new_build_specifications = [BuildSpecifications(repitions=repetitions_left, axis=axis)]
+        new_build_specifications = [BuildSpecifications(direction_to_build=direction_to_build, repitions=repetitions_left, axis=axis)]
         
         next_body_plan = BodyCons(body_part=body_part,
                                   build_specifications=new_build_specifications,
                                   next_part=next_part)
         return  joint_names + build_body_recursively(body_plan=next_body_plan,
                                       upstream_position=(0, 0, 0),
+                                      upstream_cube_element=direction_to_build,
                                       current_part_id=current_part_id + 1)
 
     return build_body_recursively(body_plan=body_plan,
                            upstream_position=Position(-5, 0, 2),
+                           upstream_cube_element=CubeElement.CENTER,
                            current_part_id=0)
 
-body_plan = BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(4, Axes.X)],
-                     BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(2, Axes.Y)],
-                              BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(3, Axes.Z)],
-                                       BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(4, Axes.Y)], None))))
+
+body_plan = BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
+                     BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.X)],
+                              BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 6, Axes.X)], None)))
 
 solution_id = 0
 
