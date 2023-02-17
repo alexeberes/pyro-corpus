@@ -4,7 +4,7 @@ from typing import NamedTuple
 from typing import Union
 from enum import Enum
 import random
- 
+from bidict import bidict
 
 VALID_CUBE_ELEMENTS = (1, 6)
 
@@ -37,6 +37,29 @@ class CubeElement(Enum):
     BACK_LEFT_TOP       = (-1, -1, 1)
     BACK_LEFT_BOTTOM    = (-1, -1, -1)
 
+OPPOSITE_ELEMENTS = bidict({
+    CubeElement.CENTER              :   CubeElement.CENTER,
+    CubeElement.FRONT               :   CubeElement.BACK,
+    CubeElement.RIGHT               :   CubeElement.LEFT,
+    CubeElement.TOP                 :   CubeElement.BOTTOM,
+    CubeElement.FRONT_RIGHT         :   CubeElement.BACK_LEFT,
+    CubeElement.FRONT_LEFT          :   CubeElement.BACK_RIGHT,
+    CubeElement.FRONT_TOP           :   CubeElement.BACK_BOTTOM,
+    CubeElement.FRONT_BOTTOM        :   CubeElement.BACK_TOP,
+    CubeElement.RIGHT_TOP           :   CubeElement.LEFT_BOTTOM,
+    CubeElement.RIGHT_BOTTOM        :   CubeElement.LEFT_TOP,
+    CubeElement.FRONT_RIGHT_TOP     :   CubeElement.BACK_LEFT_BOTTOM,
+    CubeElement.FRONT_RIGHT_BOTTOM  :   CubeElement.BACK_LEFT_TOP,
+    CubeElement.FRONT_LEFT_TOP      :   CubeElement.BACK_RIGHT_BOTTOM,
+    CubeElement.FRONT_LEFT_BOTTOM   :   CubeElement.BACK_RIGHT_TOP
+})
+
+def get_opposite_cube_element(cube_element: CubeElement):
+    try:
+        return OPPOSITE_ELEMENTS[cube_element]
+    except:
+        return OPPOSITE_ELEMENTS.inverse[cube_element][0]
+
 class Axes(Enum):
     X   =   [1, 0, 0]
     Y   =   [0, 1, 0]
@@ -54,12 +77,13 @@ class Dimensions(NamedTuple):
 
 class BodyCons(NamedTuple):
     body_part:              Union[BodyPart, BodyCons]
-    build_specifications:    list[BuildSpecifications]
+    build_specifications:   list[BuildSpecifications]
     next_part:              Union[BodyCons, list[BodyCons], None]=None
 
 class BuildSpecifications(NamedTuple):
-    repitions:  int=1
-    axis:       Axes=Axes.X
+    direction_to_build: CubeElement=CubeElement.FRONT
+    repitions:      int=1
+    axis:           Axes=Axes.X
 
 def create_random_xyz(mins: Union[float, Dimensions, Position], maxes: Union[float, Dimensions, Position]) -> Union[Dimensions, Position]:
     return tuple(mins[index] + (maxes[index] - mins[index]) * random.random() for index in range(3))
@@ -106,8 +130,8 @@ class BodyPart():
     def get_properties(self):
         return self.properties
 
-    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        return self.create_body_part(upstream_position, child_attachment_point, piece_id)
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        return self.create_body_part(upstream_position, attachment_point_on_child, piece_id)
     
 class RandomSizedBodyPiece(BodyPart):
     
@@ -115,7 +139,7 @@ class RandomSizedBodyPiece(BodyPart):
         super().__init__()
         self.properties['sensor'] = False
 
-    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
         size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
@@ -124,7 +148,7 @@ class RandomSizedBodyPiece(BodyPart):
                 scalar_multiplication_xyz(
                     -0.5,
                     size),
-                child_attachment_point.value))
+                attachment_point_on_child.value))
 
         pyrosim.Send_Cube(
             name=str(piece_id),
@@ -140,7 +164,7 @@ class RandomSizedSensorPiece(BodyPart):
         super().__init__()
         self.properties['sensor'] = True
 
-    def create_body_part(self, upstream_position: Position, child_attachment_point: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
         size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
@@ -149,7 +173,7 @@ class RandomSizedSensorPiece(BodyPart):
                 scalar_multiplication_xyz(
                     -0.5,
                     size),
-                child_attachment_point.value))
+                attachment_point_on_child.value))
 
         pyrosim.Send_Cube(
             name=str(piece_id),
