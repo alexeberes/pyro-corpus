@@ -6,6 +6,8 @@ from enum import Enum
 import random
  
 
+VALID_CUBE_ELEMENTS = (1, 6)
+
 class CubeElement(Enum):
     CENTER              = (0, 0, 0)
     FRONT               = (1, 0, 0)
@@ -35,6 +37,11 @@ class CubeElement(Enum):
     BACK_LEFT_TOP       = (-1, -1, 1)
     BACK_LEFT_BOTTOM    = (-1, -1, -1)
 
+class Axes(Enum):
+    X   =   [1, 0, 0]
+    Y   =   [0, 1, 0]
+    Z   =   [0, 0, 1]
+
 class Position(NamedTuple):
     x:  float
     y:  float
@@ -46,9 +53,13 @@ class Dimensions(NamedTuple):
     height: float
 
 class BodyCons(NamedTuple):
-    body_part:      Union[BodyPart, BodyCons]
-    repetitions:    int=1
-    next_part:      Union[BodyCons, list[BodyCons], None]=None
+    body_part:              Union[BodyPart, BodyCons]
+    build_specifications:    list[BuildSpecifications]
+    next_part:              Union[BodyCons, list[BodyCons], None]=None
+
+class BuildSpecifications(NamedTuple):
+    repitions:  int=1
+    axis:       Axes=Axes.X
 
 def create_random_xyz(mins: Union[float, Dimensions, Position], maxes: Union[float, Dimensions, Position]) -> Union[Dimensions, Position]:
     return tuple(mins[index] + (maxes[index] - mins[index]) * random.random() for index in range(3))
@@ -80,7 +91,7 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
         child=str(current_part_id + 1),
         type="revolute",
         position=list(joint_attachment_point),
-        axis=axis)
+        axis=axis.value)
     
     return joint_name
 
