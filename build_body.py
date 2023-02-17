@@ -10,9 +10,14 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
     motor_neurons = []
 
     def build_brain_recursively(body_plan: BodyCons, current_joint_id: int,  current_part_id: int):
-        body_part: BodyPart = body_plan.body_part
-        repetitions = body_plan.repetitions
-        next_part = body_plan.next_part
+        body_part: BodyPart                             = body_plan.body_part
+        build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
+        next_part                                       = body_plan.next_part
+
+        current_specification: BuildSpecifications = build_specifications[0] #[:build_specifications.find('.')]
+
+        repetitions = current_specification.repitions
+        axis = current_specification.axis
 
         if isinstance(next_part, list):
             raise ValueError('Only 1D body plans are currently supported')
@@ -36,18 +41,20 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         if repetitions_left <= 0:
             next_body_plan = BodyCons(
                 body_part=next_part.body_part,
-                repetitions=next_part.repetitions,
+                build_specifications=next_part.build_specifications,
                 next_part=next_part.next_part)
             return build_brain_recursively(body_plan=next_body_plan,
-                                          current_joint_id=current_joint_id + 1,
-                                          current_part_id=current_part_id + 1)
+                                                            current_joint_id=current_joint_id + 1,
+                                                            current_part_id=current_part_id + 1)
+        
+        new_build_specifications = [BuildSpecifications(repitions=repetitions_left, axis=axis)]
         
         next_body_plan = BodyCons(body_part=body_part,
-                                  repetitions=repetitions_left,
+                                  build_specifications=new_build_specifications,
                                   next_part=next_part)
-        return build_brain_recursively(body_plan=next_body_plan,
-                                      current_joint_id=current_joint_id + 1,
-                                      current_part_id=current_part_id + 1)
+        return  build_brain_recursively(body_plan=next_body_plan,
+                                                        current_joint_id=current_joint_id + 1,
+                                                        current_part_id=current_part_id + 1)
         
     build_brain_recursively(body_plan=body_plan,
                            current_joint_id=0,
@@ -64,9 +71,14 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
 def build_body(body_plan: BodyCons):
     def build_body_recursively(body_plan: BodyCons, upstream_position: Position, current_part_id: int):
-        body_part: BodyPart = body_plan.body_part
-        repetitions = body_plan.repetitions
-        next_part = body_plan.next_part
+        body_part: BodyPart                             = body_plan.body_part
+        build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
+        next_part                                       = body_plan.next_part
+
+        current_specification: BuildSpecifications = build_specifications[0] #[:build_specifications.find('.')]
+
+        repetitions = current_specification.repitions
+        axis = current_specification.axis
 
         if isinstance(next_part, list):
             raise ValueError('Only 1D body plans are currently supported')
@@ -85,7 +97,7 @@ def build_body(body_plan: BodyCons):
             upstream_center=my_center,
             parent_part_size=my_size,
             joint_attachment_element=CubeElement.FRONT,
-            axis=[0, 1, 0],
+            axis=axis,
             current_part_id=current_part_id)
         
         joint_names = [joint_name]
@@ -93,14 +105,16 @@ def build_body(body_plan: BodyCons):
         if repetitions_left <= 0:
             next_body_plan = BodyCons(
                 body_part=next_part.body_part,
-                repetitions=next_part.repetitions,
+                build_specifications=next_part.build_specifications,
                 next_part=next_part.next_part)
             return joint_names + build_body_recursively(body_plan=next_body_plan,
                                           upstream_position=(0, 0, 0),
                                           current_part_id=current_part_id + 1)
         
+        new_build_specifications = [BuildSpecifications(repitions=repetitions_left, axis=axis)]
+        
         next_body_plan = BodyCons(body_part=body_part,
-                                  repetitions=repetitions_left,
+                                  build_specifications=new_build_specifications,
                                   next_part=next_part)
         return  joint_names + build_body_recursively(body_plan=next_body_plan,
                                       upstream_position=(0, 0, 0),
@@ -110,18 +124,21 @@ def build_body(body_plan: BodyCons):
                            upstream_position=Position(-5, 0, 2),
                            current_part_id=0)
 
-# body_plan = BodyCons(RandomSizedBodyPiece(), 4, BodyCons(RandomSizedSensorPiece(), 3, BodyCons(RandomSizedBodyPiece(), 2, BodyCons(RandomSizedSensorPiece(), 2, None))))
+body_plan = BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(4, Axes.X)],
+                     BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(2, Axes.Y)],
+                              BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(3, Axes.Z)],
+                                       BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(4, Axes.Y)], None))))
 
-# solution_id = 0
+solution_id = 0
 
-# pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
+pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
-# joint_names = build_body(body_plan)
+joint_names = build_body(body_plan)
 
-# pyrosim.End()
+pyrosim.End()
 
-# pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
+pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
-# build_brain(body_plan, joint_names)
+build_brain(body_plan, joint_names)
 
-# pyrosim.End()
+pyrosim.End()
