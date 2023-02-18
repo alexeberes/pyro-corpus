@@ -78,7 +78,7 @@ class Dimensions(NamedTuple):
 class BodyCons(NamedTuple):
     body_part:              Union[BodyPart, BodyCons]
     build_specifications:   list[BuildSpecifications]
-    next_part:              Union[BodyCons, list[BodyCons], None]=None
+    next_body_plans:        Union[dict[CubeElement, BodyCons], None]=None
 
 class BuildSpecifications(NamedTuple):
     direction_to_build: CubeElement=CubeElement.FRONT
