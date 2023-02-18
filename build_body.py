@@ -26,6 +26,9 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         
         repetitions_left = repetitions - 1
 
+        print(next_body_plans)
+        print(repetitions_left)
+
         if repetitions_left <= 0 and next_body_plans is None:
             return
         
@@ -66,6 +69,7 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
 def build_body(body_plan: BodyCons):
     # TODO keep track of increases to current_part_id in downstream chains
+    # TODO change joint to beginning, not end
     def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, current_part_id: int):
         body_part: BodyPart                             = body_plan.body_part
         build_specifications: list[BuildSpecifications] = body_plan.build_specifications
@@ -79,7 +83,7 @@ def build_body(body_plan: BodyCons):
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
-            attachment_point_on_child=get_opposite_cube_element(upstream_cube_element),
+            attachment_point_on_child=get_opposite_cube_element(direction_to_build),
             piece_id=current_part_id)
         
         repetitions_left = repetitions - 1
@@ -98,9 +102,8 @@ def build_body(body_plan: BodyCons):
 
         if repetitions_left <= 0:
             for direction in next_body_plans:
-                print(1)
                 next_body_plan = next_body_plans[direction]
-                joint_names + build_body_recursively(body_plan=next_body_plan,
+                joint_names += build_body_recursively(body_plan=next_body_plan,
                                                             upstream_position=(0, 0, 0),
                                                             upstream_cube_element=direction,
                                                             current_part_id=current_part_id + 1)
@@ -122,10 +125,9 @@ def build_body(body_plan: BodyCons):
                            current_part_id=0)
 
 
-body_plan = BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
-                     {CubeElement.LEFT: BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.X)], None),
-                      CubeElement.RIGHT: BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.RIGHT, 6, Axes.X)], None),
-                      CubeElement.TOP: BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.X)], None)})
+body_plan = BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
+                     {CubeElement.LEFT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
+                                                 {CubeElement.TOP:BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)})})
 
 solution_id = 0
 
@@ -134,6 +136,8 @@ pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 joint_names = build_body(body_plan)
 
 pyrosim.End()
+
+print(joint_names)
 
 pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
