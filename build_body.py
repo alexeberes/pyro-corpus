@@ -26,9 +26,6 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         
         repetitions_left = repetitions - 1
 
-        print(next_body_plans)
-        print(repetitions_left)
-
         if repetitions_left <= 0 and next_body_plans is None:
             return
         
@@ -70,7 +67,7 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 def build_body(body_plan: BodyCons):
     # TODO keep track of increases to current_part_id in downstream chains
     # TODO change joint to beginning, not end
-    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, current_part_id: int):
+    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, parrent_part_id: int, current_part_id: int, parent_center: Union[Position, None]=None, parent_size: Union[Dimensions, None]=None):
         body_part: BodyPart                             = body_plan.body_part
         build_specifications: list[BuildSpecifications] = body_plan.build_specifications
         next_body_plans                                 = body_plan.next_body_plans
@@ -81,6 +78,17 @@ def build_body(body_plan: BodyCons):
         repetitions = current_specification.repitions
         axis = current_specification.axis
 
+        if parrent_part_id == -1:
+            joint_name = []
+        else:
+            joint_name: list[str] = [create_joint(
+                upstream_center=parent_center,
+                parent_part_size=parent_size,
+                joint_attachment_element=direction_to_build,
+                axis=axis,
+                parent_part_id=parrent_part_id,
+                current_part_id=current_part_id)]
+
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
             attachment_point_on_child=get_opposite_cube_element(direction_to_build),
@@ -89,24 +97,24 @@ def build_body(body_plan: BodyCons):
         repetitions_left = repetitions - 1
 
         if repetitions_left <= 0 and next_body_plans is None:
-            return []
-
-        joint_name: str = create_joint(
-            upstream_center=my_center,
-            parent_part_size=my_size,
-            joint_attachment_element=direction_to_build,
-            axis=axis,
-            current_part_id=current_part_id)
+            return joint_name
         
-        joint_names = [joint_name]
+        joint_names = [] + joint_name
 
         if repetitions_left <= 0:
+            next_parent_id = current_part_id
             for direction in next_body_plans:
                 next_body_plan = next_body_plans[direction]
                 joint_names += build_body_recursively(body_plan=next_body_plan,
                                                             upstream_position=(0, 0, 0),
                                                             upstream_cube_element=direction,
-                                                            current_part_id=current_part_id + 1)
+                                                            parrent_part_id=next_parent_id,
+                                                            current_part_id=current_part_id + 1,
+                                                            parent_center=my_center,
+                                                            parent_size=my_size)
+                last_joint_name = joint_names[-1]
+                last_link = last_joint_name.split('_')[1]
+                current_part_id = int(last_link)
             return joint_names
         
         new_build_specifications = [BuildSpecifications(direction_to_build=direction_to_build, repitions=repetitions_left, axis=axis)]
@@ -117,17 +125,27 @@ def build_body(body_plan: BodyCons):
         return  joint_names + build_body_recursively(body_plan=next_body_plan,
                                       upstream_position=(0, 0, 0),
                                       upstream_cube_element=direction_to_build,
-                                      current_part_id=current_part_id + 1)
+                                      parrent_part_id=current_part_id,
+                                      current_part_id=current_part_id + 1,
+                                      parent_center=my_center,
+                                      parent_size=my_size)
 
     return build_body_recursively(body_plan=body_plan,
-                           upstream_position=Position(-5, 0, 2),
+                           upstream_position=Position(-5, 0, 5),
                            upstream_cube_element=CubeElement.CENTER,
+                           parrent_part_id=-1,
                            current_part_id=0)
 
 
 body_plan = BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
-                     {CubeElement.LEFT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
-                                                 {CubeElement.TOP:BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)})})
+                     {CubeElement.TOP: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],
+                                                {CubeElement.BACK: BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.BACK, 5, Axes.X)],None),
+                                                 CubeElement.RIGHT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None)}),
+                      CubeElement.RIGHT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None),
+                      CubeElement.LEFT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
+                                                 {CubeElement.TOP:BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)}),
+                      CubeElement.FRONT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.FRONT, 2, Axes.X)], None),
+                    })
 
 solution_id = 0
 
