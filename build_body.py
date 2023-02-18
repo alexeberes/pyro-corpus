@@ -11,16 +11,13 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
     def build_brain_recursively(body_plan: BodyCons, current_joint_id: int,  current_part_id: int):
         body_part: BodyPart                             = body_plan.body_part
-        build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
-        next_part                                       = body_plan.next_part
+        build_specifications: list[BuildSpecifications] = body_plan.build_specifications
+        next_body_plans                                 = body_plan.next_body_plans
 
         current_specification: BuildSpecifications = build_specifications[0]
 
         repetitions = current_specification.repitions
         axis = current_specification.axis
-
-        if isinstance(next_part, list):
-            raise ValueError('Only 1D body plans are currently supported')
 
         if body_part.get_properties()['sensor'] == True:
             sensor_neuron_name = "SensorNeuron" + str(current_part_id)
@@ -29,7 +26,7 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         
         repetitions_left = repetitions - 1
 
-        if repetitions_left <= 0 and next_part is None:
+        if repetitions_left <= 0 and next_body_plans is None:
             return
         
         joint_name = joint_names[current_joint_id]
@@ -39,19 +36,17 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
         motor_neurons.append(motor_neuron_name)
 
         if repetitions_left <= 0:
-            next_body_plan = BodyCons(
-                body_part=next_part.body_part,
-                build_specifications=next_part.build_specifications,
-                next_part=next_part.next_part)
-            return build_brain_recursively(body_plan=next_body_plan,
+            for direction in next_body_plans:
+                next_body_plan = next_body_plans[direction]
+                return build_brain_recursively(body_plan=next_body_plan,
                                                             current_joint_id=current_joint_id + 1,
                                                             current_part_id=current_part_id + 1)
-        
+       
         new_build_specifications = [BuildSpecifications(repitions=repetitions_left, axis=axis)]
         
         next_body_plan = BodyCons(body_part=body_part,
                                   build_specifications=new_build_specifications,
-                                  next_part=next_part)
+                                  next_body_plans=next_body_plans)
         return  build_brain_recursively(body_plan=next_body_plan,
                                                         current_joint_id=current_joint_id + 1,
                                                         current_part_id=current_part_id + 1)
@@ -70,19 +65,17 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
 
 def build_body(body_plan: BodyCons):
+    # TODO keep track of increases to current_part_id in downstream chains
     def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, current_part_id: int):
         body_part: BodyPart                             = body_plan.body_part
-        build_specifications: list[BuildSpecifications]  = body_plan.build_specifications
-        next_part                                       = body_plan.next_part
+        build_specifications: list[BuildSpecifications] = body_plan.build_specifications
+        next_body_plans                                 = body_plan.next_body_plans
 
         current_specification: BuildSpecifications = build_specifications[0]
 
         direction_to_build = current_specification.direction_to_build
         repetitions = current_specification.repitions
         axis = current_specification.axis
-
-        if isinstance(next_part, list):
-            raise ValueError('Only 1D body plans are currently supported')
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
@@ -91,7 +84,7 @@ def build_body(body_plan: BodyCons):
         
         repetitions_left = repetitions - 1
 
-        if repetitions_left <= 0 and next_part is None:
+        if repetitions_left <= 0 and next_body_plans is None:
             return []
 
         joint_name: str = create_joint(
@@ -104,20 +97,20 @@ def build_body(body_plan: BodyCons):
         joint_names = [joint_name]
 
         if repetitions_left <= 0:
-            next_body_plan = BodyCons(
-                body_part=next_part.body_part,
-                build_specifications=next_part.build_specifications,
-                next_part=next_part.next_part)
-            return joint_names + build_body_recursively(body_plan=next_body_plan,
-                                          upstream_position=(0, 0, 0),
-                                          upstream_cube_element=direction_to_build,
-                                          current_part_id=current_part_id + 1)
+            for direction in next_body_plans:
+                print(1)
+                next_body_plan = next_body_plans[direction]
+                joint_names + build_body_recursively(body_plan=next_body_plan,
+                                                            upstream_position=(0, 0, 0),
+                                                            upstream_cube_element=direction,
+                                                            current_part_id=current_part_id + 1)
+            return joint_names
         
         new_build_specifications = [BuildSpecifications(direction_to_build=direction_to_build, repitions=repetitions_left, axis=axis)]
         
         next_body_plan = BodyCons(body_part=body_part,
                                   build_specifications=new_build_specifications,
-                                  next_part=next_part)
+                                  next_body_plans=next_body_plans)
         return  joint_names + build_body_recursively(body_plan=next_body_plan,
                                       upstream_position=(0, 0, 0),
                                       upstream_cube_element=direction_to_build,
@@ -130,8 +123,9 @@ def build_body(body_plan: BodyCons):
 
 
 body_plan = BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
-                     BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.X)],
-                              BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 6, Axes.X)], None)))
+                     {CubeElement.LEFT: BodyCons(RandomSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.X)], None),
+                      CubeElement.RIGHT: BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.RIGHT, 6, Axes.X)], None),
+                      CubeElement.TOP: BodyCons(RandomSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.X)], None)})
 
 solution_id = 0
 
