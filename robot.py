@@ -12,7 +12,7 @@ import os
 class Robot:
 
     def __init__(self, solution_id):
-        self.id = pblt.loadURDF("./data/robot/body{}.urdf".format(solution_id))
+        self.id = pblt.loadURDF("./data/robot/body{}.urdf".format(solution_id)) #, flags=pblt.URDF_USE_SELF_COLLISION + pblt.URDF_USE_SELF_COLLISION_INCLUDE_PARENT)
 
         self.solution_id = solution_id
 
