@@ -1,6 +1,11 @@
 # pyro-corp: Generating simulated virtual robot bodies
 
-v 0.0.2
+v 0.1.0
+
+---
+
+todo:
+- [ ] update README.md
 
 ---
 
