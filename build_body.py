@@ -1,4 +1,5 @@
 from __future__ import annotations
+import warnings
 import pyrosim_modded.pyrosim_modded as pyrosim
 from typing import NamedTuple
 from body_parts import *
@@ -82,6 +83,13 @@ def build_body(body_plan: BodyCons):
             joint_name = []
             my_abstract_position = Position(0, 0, 0)
         else:
+            my_abstract_position = Position(*add_xyz(parent_abstract_position, direction_to_build.value))
+        
+        if my_abstract_position in abstract_centers:
+            warnings.warn("Center already in design, cannot build")
+            # TODO: skip this cube but continue on building
+            # TODO: also need to update build brain method
+        
             joint_name: list[str] = [create_joint(
                 upstream_center=parent_center,
                 parent_part_size=parent_size,
@@ -90,15 +98,13 @@ def build_body(body_plan: BodyCons):
                 axis=axis,
                 parent_part_id=parrent_part_id,
                 current_part_id=current_part_id)]
-            my_abstract_position = Position(*add_xyz(parent_abstract_position, direction_to_build.value))
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
             attachment_point_on_child=get_opposite_cube_element(direction_to_build),
             piece_id=current_part_id)
         
-        if my_abstract_position in abstract_centers:
-            raise ValueError("Center already in design, cannot build")
+        
         abstract_centers.append(my_abstract_position)
         
         repetitions_left = repetitions - 1
