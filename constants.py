@@ -1,9 +1,9 @@
 import numpy as np
 
-num_iterations = 100000
+num_iterations = 375000
 
-sleep_time = 1/60
+sleep_time = 0.0001/60
 
 motor_joint_range = .2
 
-num_random_bodies = 5
+num_random_bodies = 1

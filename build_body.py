@@ -65,9 +65,9 @@ def build_brain(body_plan: BodyCons, joint_names: list[str]):
 
 
 def build_body(body_plan: BodyCons):
-    # TODO keep track of increases to current_part_id in downstream chains
-    # TODO change joint to beginning, not end
-    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, parrent_part_id: int, current_part_id: int, parent_center: Union[Position, None]=None, parent_size: Union[Dimensions, None]=None):
+    abstract_centers = []
+
+    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, parrent_part_id: int, current_part_id: int, parent_center: Union[Position, None]=None, parent_size: Union[Dimensions, None]=None, parent_abstract_position: Union[Position, None]=None):
         body_part: BodyPart                             = body_plan.body_part
         build_specifications: list[BuildSpecifications] = body_plan.build_specifications
         next_body_plans                                 = body_plan.next_body_plans
@@ -80,19 +80,26 @@ def build_body(body_plan: BodyCons):
 
         if parrent_part_id == -1:
             joint_name = []
+            my_abstract_position = Position(0, 0, 0)
         else:
             joint_name: list[str] = [create_joint(
                 upstream_center=parent_center,
                 parent_part_size=parent_size,
                 joint_attachment_element=direction_to_build,
+                joint_type=body_part.properties['joint'],
                 axis=axis,
                 parent_part_id=parrent_part_id,
                 current_part_id=current_part_id)]
+            my_abstract_position = Position(*add_xyz(parent_abstract_position, direction_to_build.value))
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
             attachment_point_on_child=get_opposite_cube_element(direction_to_build),
             piece_id=current_part_id)
+        
+        if my_abstract_position in abstract_centers:
+            raise ValueError("Center already in design, cannot build")
+        abstract_centers.append(my_abstract_position)
         
         repetitions_left = repetitions - 1
 
@@ -111,7 +118,8 @@ def build_body(body_plan: BodyCons):
                                                             parrent_part_id=next_parent_id,
                                                             current_part_id=current_part_id + 1,
                                                             parent_center=my_center,
-                                                            parent_size=my_size)
+                                                            parent_size=my_size,
+                                                            parent_abstract_position=my_abstract_position)
                 last_joint_name = joint_names[-1]
                 last_link = last_joint_name.split('_')[1]
                 current_part_id = int(last_link)
@@ -128,37 +136,40 @@ def build_body(body_plan: BodyCons):
                                       parrent_part_id=current_part_id,
                                       current_part_id=current_part_id + 1,
                                       parent_center=my_center,
-                                      parent_size=my_size)
+                                      parent_size=my_size,
+                                      parent_abstract_position=my_abstract_position)
 
     return build_body_recursively(body_plan=body_plan,
-                           upstream_position=Position(-5, 0, 5),
+                           upstream_position=Position(-15, 10, 5),
                            upstream_cube_element=CubeElement.CENTER,
                            parrent_part_id=-1,
-                           current_part_id=0)
+                           current_part_id=0), abstract_centers
 
 
-body_plan = BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
-                     {CubeElement.TOP: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],
-                                                {CubeElement.BACK: BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.BACK, 5, Axes.X)],None),
-                                                 CubeElement.RIGHT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None)}),
-                      CubeElement.RIGHT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None),
-                      CubeElement.LEFT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
-                                                 {CubeElement.TOP:BodyCons(FixedSizedBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)}),
-                      CubeElement.FRONT: BodyCons(FixedSizedSensorPiece(), [BuildSpecifications(CubeElement.FRONT, 2, Axes.X)], None),
-                    })
+if __name__ == '__main__':
+    body_plan = BodyCons(FixedSizeBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
+                        {CubeElement.TOP: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],
+                                                    {CubeElement.BACK: BodyCons(FixedSizeUnmovableBodyPiece(), [BuildSpecifications(CubeElement.BACK, 5, Axes.X)],None),
+                                                    CubeElement.RIGHT: BodyCons(FixedSizeUnmovableSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None)}),
+                        CubeElement.RIGHT: BodyCons(FixedSizeUnmovableSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None),
+                        CubeElement.LEFT: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
+                                                    {CubeElement.TOP:BodyCons(FixedSizeUnmovableBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)}),
+                        CubeElement.FRONT: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.FRONT, 2, Axes.X)], None),
+                        })
 
-solution_id = 0
+    solution_id = 0
 
-pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
+    pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
-joint_names = build_body(body_plan)
+    joint_names, abstract_centers = build_body(body_plan)
 
-pyrosim.End()
+    pyrosim.End()
 
-print(joint_names)
+    print(joint_names)
+    print(abstract_centers)
 
-pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
+    pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
-build_brain(body_plan, joint_names)
+    build_brain(body_plan, joint_names)
 
-pyrosim.End()
+    pyrosim.End()
