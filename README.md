@@ -6,6 +6,9 @@ v 0.1.0
 
 todo:
 - [ ] update README.md
+- [ ] add new video
+- [ ] update build instructions
+- [ ] add needed dependencies
 
 ---
 
