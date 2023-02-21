@@ -157,6 +157,7 @@ cython_debug/
 *.sdf
 
 media/*
+!media/diagram1.png
 
 build_brain.py
 
