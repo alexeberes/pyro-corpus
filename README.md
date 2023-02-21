@@ -4,15 +4,6 @@ v 0.1.0
 
 ---
 
-todo:
-
-- [ ] update README.md
-- [x] add new video
-- [x] update build instructions
-- [ ] add needed dependencies
-
----
-
 Simulating random robot body plans using a recursive method.
 
 To run, clone and run `python main.py` in the terminal.
