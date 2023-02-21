@@ -72,7 +72,7 @@ To see how this could generate even more complicated bodies, consider the PRIF:
 ```
 
 This would build the following body plan:
-![PRIF example body plan](./media/diagram1.png)
+![PRIF example body plan](media/diagram1.png)
 
 ### pyro-corpus PRIF to URDF method
 
