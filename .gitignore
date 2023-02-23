@@ -161,3 +161,4 @@ media/*
 
 build_brain.py
 
+.DS_Store
