@@ -72,6 +72,9 @@ def build_body(body_plan: BodyCons):
         build_specifications: list[BuildSpecifications] = body_plan.build_specifications
         next_body_plans                                 = body_plan.next_body_plans
 
+        # TODO check if body_part is BodyCons: if so, call recursive method w/ values extracted from body_part
+        # TODO update method for tracking upstream_cube_element
+
         current_specification: BuildSpecifications = build_specifications[0]
 
         direction_to_build = current_specification.direction_to_build
@@ -147,15 +150,7 @@ def build_body(body_plan: BodyCons):
 
 
 if __name__ == '__main__':
-    body_plan = BodyCons(FixedSizeBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.X)],
-                        {CubeElement.TOP: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],
-                                                    {CubeElement.BACK: BodyCons(FixedSizeUnmovableBodyPiece(), [BuildSpecifications(CubeElement.BACK, 5, Axes.X)],None),
-                                                    CubeElement.RIGHT: BodyCons(FixedSizeUnmovableSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None)}),
-                        CubeElement.RIGHT: BodyCons(FixedSizeUnmovableSensorPiece(), [BuildSpecifications(CubeElement.RIGHT, 2, Axes.Y)], None),
-                        CubeElement.LEFT: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Y)], 
-                                                    {CubeElement.TOP:BodyCons(FixedSizeUnmovableBodyPiece(), [BuildSpecifications(CubeElement.TOP, 3, Axes.Z)],None)}),
-                        CubeElement.FRONT: BodyCons(FixedSizeSensorPiece(), [BuildSpecifications(CubeElement.FRONT, 2, Axes.X)], None),
-                        })
+    body_plan = BodyCons(BodyCons(FixedSizeBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 3, Axes.Z)], None), [BuildSpecifications(CubeElement.LEFT, 2, Axes.Z)], None)
 
     solution_id = 0
 
