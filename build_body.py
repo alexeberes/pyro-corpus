@@ -68,6 +68,15 @@ def build_synapses(weights: NeuronWeightMatrix):
                 weight=weights.get(sensor_neuron, motor_neuron)
             )
 
+def build_brain(joint_names, sensor_parts):
+    sensor_neurons, motor_neurons = build_neurons(joint_names, sensor_parts)
+
+    weight_matrix = NeuronWeightMatrix(sensor_neurons, motor_neurons, None)
+
+    build_synapses(weight_matrix)
+
+    return weight_matrix
+
 def build_body(body_plan: BodyCons):
     abstract_centers        = []
     joint_names             = []
@@ -179,13 +188,6 @@ if __name__ == '__main__':
 
     pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
-    sensor_neurons, motor_neurons = build_neurons(joint_names, sensor_parts)
-
-    print(sensor_neurons)
-    print(motor_neurons)
-
-    weight_matrix = NeuronWeightMatrix(sensor_neurons, motor_neurons, None)
-
-    build_synapses(weight_matrix)
+    weight_matrix = build_brain(joint_names, sensor_parts)
 
     pyrosim.End()
