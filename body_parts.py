@@ -76,6 +76,7 @@ class Dimensions(NamedTuple):
     height: float
 
 class BodyCons(NamedTuple):
+    body_cons_id:           int
     body_part:              Union[BodyPart, BodyCons]
     build_specifications:   list[BuildSpecifications]
     next_body_plans:        Union[dict[CubeElement, BodyCons], None]=None
@@ -98,7 +99,7 @@ def element_wise_multiplication_xyz(xyz_tuple1: Union[Position, Dimensions, tupl
     return tuple(map(lambda var1, var2: var1 * var2, xyz_tuple1, xyz_tuple2))
 
 def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_attachment_element: CubeElement, joint_type:str, axis: list[Union[float, int]], parent_part_id: int, current_part_id: int) -> str:
-    joint_name = str(parent_part_id) + "_" + str(current_part_id)
+    joint_name = "s" + str(parent_part_id) + "st" + str(current_part_id) + "t"
 
     joint_attachment_point = add_xyz(
         upstream_center,
