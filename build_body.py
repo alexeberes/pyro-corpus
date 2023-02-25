@@ -3,8 +3,43 @@ import pyrosim_modded.pyrosim_modded as pyrosim
 from typing import NamedTuple
 from body_parts import *
 import random
-import pandas as pd
+import numpy as np
 
+class NeuronWeightMatrix():
+    
+    def __init__(self, sensor_neurons: list[str], motor_neurons: list[str], previous_weights: Union[NeuronWeightMatrix, None] = None) -> None:
+        self.shape = (len(sensor_neurons), len(motor_neurons))
+        self.sensors = { sensor_neurons[x]: x for x in range(len(sensor_neurons)) }
+        self.motors = { motor_neurons[x]: x for x in range(len(motor_neurons)) }
+        self.matrix = np.full(self.shape, np.nan)
+
+        if previous_weights is not None:
+            generator_sensors = (sensor for sensor in self.sensors if sensor in previous_weights.get_sensors())
+            generator_motors = (motor for motor in self.motors if motor in previous_weights.get_motors())
+
+            for sensor in generator_sensors:
+                for motor in generator_motors:
+                    self_sensor_index = self.sensors[sensor]
+                    self_motor_index = self.motors[motor]
+                    previous_sensor_index = previous_weights.get_sensors()[sensor]
+                    previous_motor_index = previous_weights.get_motors()[motor]
+                    self.matrix[self_sensor_index, self_motor_index] = previous_weights.get_weights[previous_sensor_index, previous_motor_index]
+
+        self.matrix[np.isnan(self.matrix)] = np.random.randn(len(self.matrix[np.isnan(self.matrix)]))
+
+    def get_sensors(self):
+        return self.sensors
+    
+    def get_motors(self):
+        return self.motors
+    
+    def get_weights(self):
+        return self.matrix
+    
+    def get(self, sensor, motor):
+        sensor_index = self.sensors[sensor]
+        motor_index = self.motors[motor]
+        return self.matrix[sensor_index, motor_index]
 
 def build_neurons(joint_names: list[str], sensor_parts: list[str]):
     sensor_neurons = []
@@ -22,29 +57,23 @@ def build_neurons(joint_names: list[str], sensor_parts: list[str]):
 
     return sensor_neurons, motor_neurons
 
-class weight_matrix():
-    pass
-
-def build_weight_matrix(sensor_neurons: list[str], motor_neurons: list[str]):
-    pass
-
-def build_synapses(sensor_neurons: list[str], motor_neurons: list[str], weights):
+def build_synapses(weights: NeuronWeightMatrix):
+    sensor_neurons: list[str]   = list(weights.get_sensors().keys())
+    motor_neurons: list[str]    = list(weights.get_motors().keys())
     for sensor_neuron in sensor_neurons:
         for motor_neuron in motor_neurons:
             pyrosim.Send_Synapse(
                 sourceNeuronName=sensor_neuron,
                 targetNeuronName=motor_neuron,
-                weight=-1 + 2 * random.random()
+                weight=weights.get(sensor_neuron, motor_neuron)
             )
-
 
 def build_body(body_plan: BodyCons):
     abstract_centers        = []
-    bcid_to_pid_matching    = {}
     joint_names             = []
     sensor_parts            = []
 
-    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, parrent_part_id: int, current_part_id: int, parent_center: Union[Position, None]=None, parent_size: Union[Dimensions, None]=None, parent_abstract_position: Union[Position, None]=None):
+    def build_body_recursively(body_plan: BodyCons, upstream_position: Position, upstream_cube_element: CubeElement, parrent_part_id: int, parent_center: Union[Position, None]=None, parent_size: Union[Dimensions, None]=None, parent_abstract_position: Union[Position, None]=None):
         body_cons_id                                    = body_plan.body_cons_id
         body_part: BodyPart                             = body_plan.body_part
         build_specifications: list[BuildSpecifications] = body_plan.build_specifications
@@ -55,6 +84,9 @@ def build_body(body_plan: BodyCons):
         direction_to_build = current_specification.direction_to_build
         repetitions = current_specification.repitions
         axis = current_specification.axis
+
+        specific_body_cons_id = "{}r{}".format(body_cons_id, repetitions)
+        current_part_id = specific_body_cons_id
 
         if parrent_part_id == -1:
             my_abstract_position = Position(0, 0, 0)
@@ -78,9 +110,6 @@ def build_body(body_plan: BodyCons):
         if body_part.get_properties()['sensor'] == True:
             sensor_parts.append(current_part_id)
         
-        specific_body_cons_id = "{}r{}".format(body_cons_id, repetitions)
-        bcid_to_pid_matching[specific_body_cons_id] = current_part_id
-        
         if my_abstract_position in abstract_centers:
             raise ValueError("Center already in design, cannot build")
         abstract_centers.append(my_abstract_position)
@@ -98,13 +127,9 @@ def build_body(body_plan: BodyCons):
                                                             upstream_position=(0, 0, 0),
                                                             upstream_cube_element=direction,
                                                             parrent_part_id=next_parent_id,
-                                                            current_part_id=current_part_id + 1,
                                                             parent_center=my_center,
                                                             parent_size=my_size,
                                                             parent_abstract_position=my_abstract_position)
-                last_joint_name = joint_names[-1]
-                last_link = last_joint_name.split('t')[1]
-                current_part_id = int(last_link)
             return
         
         new_build_specifications = [BuildSpecifications(direction_to_build=direction_to_build, repitions=repetitions_left, axis=axis)]
@@ -117,7 +142,6 @@ def build_body(body_plan: BodyCons):
                                       upstream_position=(0, 0, 0),
                                       upstream_cube_element=direction_to_build,
                                       parrent_part_id=current_part_id,
-                                      current_part_id=current_part_id + 1,
                                       parent_center=my_center,
                                       parent_size=my_size,
                                       parent_abstract_position=my_abstract_position)
@@ -125,9 +149,9 @@ def build_body(body_plan: BodyCons):
     build_body_recursively(body_plan=body_plan,
                            upstream_position=Position(-15, 10, 5),
                            upstream_cube_element=CubeElement.CENTER,
-                           parrent_part_id=-1,
-                           current_part_id=0)
-    return joint_names, sensor_parts, abstract_centers, bcid_to_pid_matching
+                           parrent_part_id=-1)
+    
+    return joint_names, sensor_parts, abstract_centers
 
 
 if __name__ == '__main__':
@@ -145,13 +169,12 @@ if __name__ == '__main__':
 
     pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
-    joint_names, sensor_parts, abstract_centers, matches = build_body(body_plan)
+    joint_names, sensor_parts, abstract_centers = build_body(body_plan)
 
     pyrosim.End()
 
     print(joint_names)
     print(sensor_parts)
-    print(matches)
     print(abstract_centers)
 
     pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
@@ -160,5 +183,9 @@ if __name__ == '__main__':
 
     print(sensor_neurons)
     print(motor_neurons)
+
+    weight_matrix = NeuronWeightMatrix(sensor_neurons, motor_neurons, None)
+
+    build_synapses(weight_matrix)
 
     pyrosim.End()
