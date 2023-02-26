@@ -3,7 +3,7 @@ import copy
 from body_parts import *
 import random
 
-BASE_BODYPLAN = BodyCons(0, FixedSizeBodyPiece(), [BuildSpecifications(CubeElement.FRONT, 1, Axes.Y)], None)
+BASE_BODYPLAN = BodyCons(0, FixedSizedUnchangeableBrain(), [BuildSpecifications(CubeElement.FRONT, 1, Axes.Y)], None)
 
 BASE_BODYCONS_ID = 0
 
@@ -41,6 +41,14 @@ def pick_mutation(mutation_weighting: list[float], mutation_options: list[functi
 
 def modify_body_type(current_body_plan: BodyCons, next_bodycons_id:int):
     new_body_type = current_body_type = current_body_plan.body_part
+
+    if current_body_type.properties['unchangeable'] == True:
+        mutation = pick_mutation(BODYCONS_MUTATION_WEIGHTING, BODYCONS_MUTATIONS)
+
+        mutated_body_plan = mutation(current_body_plan, next_bodycons_id)
+
+        return mutated_body_plan
+
     while type(new_body_type) is type(current_body_type):
         new_body_type = random.choice(BODY_TYPES)
     
@@ -48,6 +56,13 @@ def modify_body_type(current_body_plan: BodyCons, next_bodycons_id:int):
     return new_body_plan
 
 def modify_build_sepcs(current_body_plan: BodyCons, next_bodycons_id:int):
+    if current_body_plan.body_part.properties['unchangeable'] == True:
+        mutation = pick_mutation(BODYCONS_MUTATION_WEIGHTING, BODYCONS_MUTATIONS)
+
+        mutated_body_plan = mutation(current_body_plan, next_bodycons_id)
+
+        return mutated_body_plan
+    
     spec_mutation = pick_mutation(BUILD_SPEC_MUTATION_WEIGHTING, BUILDSPECS_MUTATIONS)
 
     new_build_specifications = spec_mutation(current_body_plan.build_specifications[0])
@@ -110,7 +125,7 @@ def add_new_next_direction(current_next: BodyCons, direction: CubeElement, next_
     new_next = copy.copy(current_next)
     if new_next is None:
         new_next = {}
-    new_next[direction] = BodyCons(next_bodycons_id, random.choice(BODY_TYPES), [BuildSpecifications(random.choice(DIRECTIONS_TO_BUILD), random.randint(1, 5), random.choice(AXES))], None)
+    new_next[direction] = BodyCons(next_bodycons_id, random.choice(BODY_TYPES), [BuildSpecifications(random.choice(DIRECTIONS_TO_BUILD), 1, random.choice(AXES))], None)
 
     return new_next
 
@@ -139,17 +154,22 @@ NEXT_MUTATION_WEIGHTING = [0.8, 0.2]
 
 # mutation algorithm
 
-def run_mutation(current_body_plan:BodyCons, current_bodycons_id:int, number_of_mutations: int):
+def run_mutator(current_body_plan:BodyCons, current_bodycons_id:int, number_of_mutations: int):
     mutated_body_plan = BodyCons(current_body_plan.body_cons_id, current_body_plan.body_part, current_body_plan.build_specifications, current_body_plan.next_body_plans)
 
     for i in range(number_of_mutations):
-        next_bodycons_id = current_bodycons_id + 1 + i
-
-        mutation = pick_mutation(BODYCONS_MUTATION_WEIGHTING, BODYCONS_MUTATIONS)
-
-        mutated_body_plan = mutation(mutated_body_plan, next_bodycons_id)
+        mutated_body_plan, _ = mutate(mutated_body_plan, current_bodycons_id + i)
 
     return mutated_body_plan
+
+def mutate(current_body_plan:BodyCons, current_bodycons_id:int):
+    new_bodycons_id = current_bodycons_id + 1
+
+    mutation = pick_mutation(BODYCONS_MUTATION_WEIGHTING, BODYCONS_MUTATIONS)
+
+    mutated_body_plan = mutation(current_body_plan, new_bodycons_id)
+
+    return mutated_body_plan, new_bodycons_id
 
 
 if __name__ == '__main__':
@@ -159,5 +179,5 @@ if __name__ == '__main__':
     print()
     print()
 
-    new_body_plan = run_mutation(initial_body_plan, BASE_BODYCONS_ID, NUMBER_OF_MUTATIONS)
+    new_body_plan = run_mutator(initial_body_plan, BASE_BODYCONS_ID, NUMBER_OF_MUTATIONS)
     print(new_body_plan)
