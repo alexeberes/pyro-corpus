@@ -145,20 +145,19 @@ class FAERYvPyrCor1:
         self.parents = next_generation | new_members
 
     def show_best(self) -> None:
-        top_key = list(self.parents.keys())[0]
-        for key in self.parents:
-            parent = self.parents[key]
-            current_best = self.parents[top_key]
-            if parent.fitness > current_best.fitness:
-                top_key = key
-        print(self.parents[top_key].fitness)
-        self.parents[top_key].start_simulation("GUI")
+        individuals = self.children | self.parents
+        sorted_individual_indices = self.sort_individuals(individuals)
+        top_individual_index = sorted_individual_indices[0]
+        top_individual = individuals[top_individual_index]
 
         now = datetime.now()
         date_time_str = now.strftime("%Y-%m-%d.%H_%M_%S_%f")
         fitness_file_name = "./data/output/fitnesses_{}.pylist".format(date_time_str)
         with open(fitness_file_name, "wb") as fp:
             pickle.dump(self.max_fitnesses, fp)
+        genome_file_name = "./data/output/genome_{}.pygenome".format(date_time_str)
+        with open(genome_file_name, "wb") as fp:
+            pickle.dump(top_individual.genome, fp)
 
     def sort_individuals(self, individuals):
         individual_fitness_dict = {}
