@@ -46,16 +46,19 @@ class FAERYvPyrCor1:
             os.system("rm ./data/robot/body*.urdf")
             self.evolve_for_one_generation(generation)
         
-        self.show_best()
+        return self.show_best()
 
     def evaluate(self, solutions) -> None:
-        for key in solutions:
-            solution = solutions[key]
-            solution.start_simulation()
-        
-        for key in solutions:
-            solution = solutions[key]
-            solution.wait_for_simulation_to_end()
+        n = Cnsts.num_simulations_at_once
+        solution_chunks = [list(solutions.keys())[i: i + n] for i in range(0, len(solutions), n)]
+        for solution_chunk in solution_chunks:
+            for key in solution_chunk:
+                solution = solutions[key]
+                solution.start_simulation()
+            
+            for key in solution_chunk:
+                solution = solutions[key]
+                solution.wait_for_simulation_to_end()
     
     def evolve_for_one_generation(self, generation):
         self.produce_children(generation)
@@ -158,6 +161,8 @@ class FAERYvPyrCor1:
         genome_file_name = "./data/output/genome_{}.pygenome".format(date_time_str)
         with open(genome_file_name, "wb") as fp:
             pickle.dump(top_individual.genome, fp)
+
+        return genome_file_name, fitness_file_name
 
     def sort_individuals(self, individuals):
         individual_fitness_dict = {}
