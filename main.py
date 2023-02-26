@@ -1,8 +1,8 @@
 import os
 import random
 import time
-from build_body import *
-from generate_body_cons import *
+from body_builder import *
+from body_mutator import *
 import pybullet as pblt
 import constants as Cnsts
 
@@ -36,7 +36,7 @@ for i in range(Cnsts.num_random_bodies):
     while running:
         try:
 
-            mutated_body_plan = run_mutation(initial_body_plan, BASE_BODYCONS_ID, 20)
+            mutated_body_plan = run_mutator(initial_body_plan, BASE_BODYCONS_ID, 20)
 
             pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
