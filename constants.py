@@ -4,7 +4,7 @@ num_iterations = 10000
 
 sleep_time = 0.5/60
 
-num_generations = 100
+num_generations = 10
 
 motor_joint_range = .2
 
@@ -15,7 +15,7 @@ default_fitness = 100
 mutation_rate = 0.75
 mutation_magnitude = 2
 
-generation_size = 20
+generation_size = 5
 number_of_children = 5
 family_filter_size = 3
 random_members = 3

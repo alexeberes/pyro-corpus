@@ -162,3 +162,7 @@ media/*
 build_brain.py
 
 .DS_Store
+
+Figure*
+*.pylist
+*.pygenome
