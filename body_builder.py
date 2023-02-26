@@ -123,7 +123,7 @@ def build_body(body_plan: BodyCons):
                                       parent_abstract_position=my_abstract_position)
     
     build_body_recursively(body_plan=body_plan,
-                           upstream_position=Position(-15, 10, 5),
+                           upstream_position=Position(0, 0, 2),
                            upstream_cube_element=CubeElement.CENTER,
                            parrent_part_id=-1)
     
