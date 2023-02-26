@@ -80,3 +80,4 @@ class Solution:
         pyrosim.End()
 
         self.weight_matrix = weight_matrix
+        self.genome = Genome(self.genome.bodycons_id, self.weight_matrix, self.genome.body_chromosome)
