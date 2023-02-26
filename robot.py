@@ -41,6 +41,8 @@ class Robot:
     def sense(self, iteration):
         for sensor_name in self.sensors:
             self.sensors[sensor_name].get_value(iteration)
+            if 'b' in sensor_name:
+                self.nn.neurons[sensor_name].Set_Value(Cnsts.CPG_magnitude * np.sin(Cnsts.CPG_period_modifier * iteration))
 
     def act(self):
         for neuron_name in self.nn.Get_Neuron_Names():

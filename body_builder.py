@@ -5,42 +5,6 @@ from body_parts import *
 import random
 import numpy as np
 
-class NeuronWeightMatrix():
-    
-    def __init__(self, sensor_neurons: list[str], motor_neurons: list[str], previous_weights: Union[NeuronWeightMatrix, None] = None) -> None:
-        self.shape = (len(sensor_neurons), len(motor_neurons))
-        self.sensors = { sensor_neurons[x]: x for x in range(len(sensor_neurons)) }
-        self.motors = { motor_neurons[x]: x for x in range(len(motor_neurons)) }
-        self.matrix = np.full(self.shape, np.nan)
-
-        if previous_weights is not None:
-            generator_sensors = (sensor for sensor in self.sensors if sensor in previous_weights.get_sensors())
-            generator_motors = (motor for motor in self.motors if motor in previous_weights.get_motors())
-
-            for sensor in generator_sensors:
-                for motor in generator_motors:
-                    self_sensor_index = self.sensors[sensor]
-                    self_motor_index = self.motors[motor]
-                    previous_sensor_index = previous_weights.get_sensors()[sensor]
-                    previous_motor_index = previous_weights.get_motors()[motor]
-                    self.matrix[self_sensor_index, self_motor_index] = previous_weights.get_weights[previous_sensor_index, previous_motor_index]
-
-        self.matrix[np.isnan(self.matrix)] = np.random.randn(len(self.matrix[np.isnan(self.matrix)]))
-
-    def get_sensors(self):
-        return self.sensors
-    
-    def get_motors(self):
-        return self.motors
-    
-    def get_weights(self):
-        return self.matrix
-    
-    def get(self, sensor, motor):
-        sensor_index = self.sensors[sensor]
-        motor_index = self.motors[motor]
-        return self.matrix[sensor_index, motor_index]
-
 def build_neurons(joint_names: list[str], sensor_parts: list[str]):
     sensor_neurons = []
     motor_neurons = []
@@ -97,6 +61,9 @@ def build_body(body_plan: BodyCons):
         specific_body_cons_id = "{}r{}".format(body_cons_id, repetitions)
         current_part_id = specific_body_cons_id
 
+        if body_part.get_properties()['brain'] == True:
+            current_part_id = current_part_id + 'B'
+
         if parrent_part_id == -1:
             my_abstract_position = Position(0, 0, 0)
         else:
@@ -116,7 +83,7 @@ def build_body(body_plan: BodyCons):
             attachment_point_on_child=get_opposite_cube_element(direction_to_build),
             piece_id=current_part_id)
         
-        if body_part.get_properties()['sensor'] == True:
+        if body_part.get_properties()['sensor'] == True or body_part.get_properties()['brain'] == True:
             sensor_parts.append(current_part_id)
         
         if my_abstract_position in abstract_centers:
