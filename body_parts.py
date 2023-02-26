@@ -358,6 +358,9 @@ class NeuronWeightMatrix():
     def get_weights(self):
         return self.matrix
     
+    def set_weights(self, weights):
+        self.matrix = weights
+    
     def get(self, sensor, motor):
         sensor_index = self.sensors[sensor]
         motor_index = self.motors[motor]
