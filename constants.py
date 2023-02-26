@@ -1,6 +1,6 @@
 import numpy as np
 
-num_iterations = 150000
+num_iterations = 10
 
 sleep_time = 0.001/60
 
@@ -10,7 +10,7 @@ motor_joint_range = .2
 
 num_random_bodies = 1
 
-default_fitness = 100
+default_fitness = 0
 
 mutation_rate = 0.75
 mutation_magnitude = 2

@@ -15,6 +15,8 @@ import brain_mutator
 from body_parts import *
 
 class FAERYvPyrCor1:
+    # FAERYvPyrCor1: Family Aware EvolutionaRY algorithm for pyro-corpus 1
+    # Based off of pyroFAE3
     
     def __init__(self) -> None:
         os.system("rm ./data/robot/robot_fitness*.txt")
@@ -98,7 +100,15 @@ class FAERYvPyrCor1:
         os.system("rm ./data/robot/body{}.urdf".format(genome_id))
 
         if genome_to_mutate.brain_chromosome is not None:
-            mutated_brain_chromosome = brain_mutator.mutate(genome_to_mutate.brain_chromosome, self.rng, genome_to_mutate.brain_chromosome.shape, Cnsts.mutation_rate, Cnsts.mutation_magnitude)
+            mutated_brain_chromosome_weights = brain_mutator.mutate(genome_to_mutate.brain_chromosome, self.rng, genome_to_mutate.brain_chromosome.shape, Cnsts.mutation_rate, Cnsts.mutation_magnitude)
+
+            mutated_brain_chromosome = NeuronWeightMatrix(
+                sensor_neurons=list(genome_to_mutate.brain_chromosome.get_sensors().keys()),
+                motor_neurons=list(genome_to_mutate.brain_chromosome.get_motors().keys()),
+                previous_weights=None
+            )
+
+            mutated_brain_chromosome.set_weights(mutated_brain_chromosome_weights)
         else:
             mutated_brain_chromosome = None
         
@@ -123,6 +133,8 @@ class FAERYvPyrCor1:
         sorted_individual_indices = self.sort_individuals(individuals)
         next_generation = {}
         family_counts = {}
+        top_individual_index = sorted_individual_indices[0]
+        top_individual = individuals[top_individual_index]
         while len(next_generation) < self.total_filter_size:
             top_individual_index = sorted_individual_indices[0]
             top_individual = individuals[top_individual_index]
@@ -139,6 +151,9 @@ class FAERYvPyrCor1:
                 family_counts[top_individual_family2] += 1
                 next_generation[top_individual_index] = top_individual
                 sorted_individual_indices.remove(top_individual_index)
+        genome_file_name = "./data/output/rip/genome_{}_{}.pygenome".format(generation, top_individual_index)
+        with open(genome_file_name, "wb") as fp:
+            pickle.dump(top_individual.genome, fp)
         new_members = {}
         for random_member_index in range(self.random_members):
             new_individual_key = self.generation_size + (generation * self.random_members) + random_member_index
