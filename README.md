@@ -30,6 +30,8 @@ The video shows an example of the results of this optimization.
 
 The best fitness of each of the five evolutionary runs at each generation is also plotted here to demonstrate the evolution over time.
 
+![Best fitness per generation](data/output/fitness_curves.png)
+
 ## The pyro-corpus body generation method
 
 pyro-corpus consists of two parts:
