@@ -26,7 +26,7 @@ Evolution occurred using the FAERYvPyrCor1 algorithm, a Family Aware EvolutionaR
 Each evolutionary run was run for a total of `50` generations with `20` individuals per generation for a total of `1000` simulated robots.
 The video shows an example of the results of this optimization.
 
-[![recursive body generation video](https://img.youtube.com/vi/ulnKKiTQNsw/0.jpg)](https://www.youtube.com/watch?v=ulnKKiTQNsw)
+[![recursive body generation video](https://img.youtube.com/vi/1nszsIci9XQ/0.jpg)](https://www.youtube.com/watch?v=1nszsIci9XQ)
 
 The best fitness of each of the five evolutionary runs at each generation is also plotted here to demonstrate the evolution over time.
 
