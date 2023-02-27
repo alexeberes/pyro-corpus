@@ -1,12 +1,12 @@
 # pyro-corpus: recursive virtual robot body generation
 
-v 0.1.0
+v 0.2.0
 
 ---
 
-Simulating random robot body plans using a recursive method.
+Simulating and evolving random robot body plans using a recursive method.
 
-To run, clone and run `python main.py` in the terminal.
+To run, clone and run `python search.py` in the terminal.
 
 ## Motivation
 
@@ -20,10 +20,19 @@ Each one is made of up collections of myriads of almost identical cells.
 The organism does not explicitly store each and every cell separately.
 Rather, there is a large set of instructions that is repeated several times.
 
-Towards this goal, here I present a recursive method of generating simulated robot body plans.
-To demonstrate the capabilities of the method, I generated and simulated 3 random robot body plans, seen in the video here.
+Towards this goal, here I present a recursive method of generating and evolving simulated robot body plans.
+To demonstrate the capabilities of the method, I started with a single cube body piece and evolved random bodies with the goal of moving as far forward in the `y` direction as possible.
+Evolution occurred using the FAERYvPyrCor1 algorithm, a Family Aware EvolutionaRY (FAERY) algorithm derived from my [pyroFAE1](https://github.com/alexeberes/pyro-faery) algorithm.
+Each evolutionary run was run for a total of `50` generations with `20` individuals per generation for a total of `1000` simulated robots.
+The video shows an example of the results of this optimization.
 
-[![recursive body generation video](https://img.youtube.com/vi/ulnKKiTQNsw/0.jpg)](https://www.youtube.com/watch?v=ulnKKiTQNsw)
+[![recursive body generation video](https://img.youtube.com/vi/1nszsIci9XQ/0.jpg)](https://www.youtube.com/watch?v=1nszsIci9XQ)
+
+The best fitness of each of the five evolutionary runs at each generation is also plotted here to demonstrate the evolution over time.
+
+![Best fitness per generation](data/output/fitness_curves.png)
+
+Each run in the above figure used a different random seed.
 
 ## The pyro-corpus body generation method
 
@@ -93,7 +102,7 @@ The recursive method follows the below steps to turn this PRIF instruction into 
 6. Check if the `next_instruction` is `None`; if so, exit recursion; if not, continue.
 7. Go through the dictionary, recursively call the function with `(next_instruction[direction].body_part, next_instruction[direction].build_specs, next_instruction[direction].next_instruction)` as the arguments.
 
-The robot's brain is built using a second recursive function that follows the same format.
+The robot's brain is built by looping through the joints and sensor parts built in body construction to add the proper neurons and synapses.
 It was necessary to split this into two functions because pyrosim is only able to write to one file type at a time.
 
 ## Mutating PRIFs and random body generation
@@ -109,16 +118,28 @@ In the video, four body part classes are shown:
 - sensor body part (green)
 - fixed joint/not rotating body part (purple)
 - fixed joint sensor part (orange)
+- unchangeable "brain" CPG part (black)
 
 The fixed joint parts are important to be able to build bodies with non-linearly shaped rigid sections.
 This is because each body part is identically-sized; they are all geometrically identical cubes.
 To build shapes with other shapes and sized, therefore, it is necessary to connect multiple fixed joint parts since these are unable to rotate.
+
+The black [CPG](https://en.wikipedia.org/wiki/Central_pattern_generator) "brain" provides two functions.
+
+1. It ensures that there will always be at least one sensor neuron so valid neural networks can be constructed.
+2. Like natural CPGs, it provides a constant repeating pattern to promote oscillatory movement such as walking.
 
 To change the `build_specs`, either the direction is randomly changed to a new one, the repetitions are randomly incremented or decremented (a check is in place to ensure that the repetitions is greater than `0`), or the axis is randomly changed to a new one.
 
 To change the `next_instruction`, either a new PRIF is added to an unused direction or the PRIF in a direction already in `next_instructions` is mutated.
 
 Randomly mutating the base PRIF like so a number of types results in random body generation as demonstrated in the video.
+
+## Evolution: FAERYvPyrCor1
+
+Evolution occurred using one of my Family Aware EvolutionaRY (FAERY) algorithms (see [here](https://github.com/alexeberes/pyro-faery) for further information).
+FAERYvPyrCor1 differs from previous FAERY algorithms in that no crossover occurs between parents when producing children.
+Besides this, however, the method is largely identical to pyroFAE1.
 
 ## Checking invalid bodies
 

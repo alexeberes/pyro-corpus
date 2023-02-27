@@ -5,6 +5,7 @@ from typing import Union
 from enum import Enum
 import random
 from bidict import bidict
+import numpy as np
 
 VALID_CUBE_ELEMENTS = (1, 6)
 
@@ -76,6 +77,7 @@ class Dimensions(NamedTuple):
     height: float
 
 class BodyCons(NamedTuple):
+    body_cons_id:           int
     body_part:              Union[BodyPart, BodyCons]
     build_specifications:   list[BuildSpecifications]
     next_body_plans:        Union[dict[CubeElement, BodyCons], None]=None
@@ -84,6 +86,11 @@ class BuildSpecifications(NamedTuple):
     direction_to_build: CubeElement=CubeElement.FRONT
     repitions:      int=1
     axis:           Axes=Axes.X
+
+class Genome(NamedTuple):
+    bodycons_id:        int
+    brain_chromosome:   NeuronWeightMatrix
+    body_chromosome:    BodyCons
 
 def create_random_xyz(mins: Union[float, Dimensions, Position], maxes: Union[float, Dimensions, Position]) -> Union[Dimensions, Position]:
     return tuple(mins[index] + (maxes[index] - mins[index]) * random.random() for index in range(3))
@@ -98,7 +105,7 @@ def element_wise_multiplication_xyz(xyz_tuple1: Union[Position, Dimensions, tupl
     return tuple(map(lambda var1, var2: var1 * var2, xyz_tuple1, xyz_tuple2))
 
 def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_attachment_element: CubeElement, joint_type:str, axis: list[Union[float, int]], parent_part_id: int, current_part_id: int) -> str:
-    joint_name = str(parent_part_id) + "_" + str(current_part_id)
+    joint_name = "" + str(parent_part_id) + "_" + str(current_part_id) + ""
 
     joint_attachment_point = add_xyz(
         upstream_center,
@@ -123,8 +130,10 @@ class BodyPart():
 
     def __init__(self):
         self.properties = {
-            'sensor':   True,
-            'joint':    'revolute'
+            'sensor'        : True,
+            'joint'         : 'revolute',
+            'unchangeable'  : False,
+            'brain'         : False
         }
 
     def get_properties(self):
@@ -289,3 +298,70 @@ class FixedSizeUnmovableSensorPiece(BodyPart):
             color=('Orange', [1.0, 0.35, 0.2, 1.0]))
 
         return center, size
+    
+class FixedSizedUnchangeableBrain(BodyPart):
+    
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['sensor'] = True
+        self.properties['unchangeable'] = True
+        self.properties['brain'] = True
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Black', [0.0, 0.0, 0.0, 1.0]))
+
+        return center, size
+
+class NeuronWeightMatrix():
+    
+    def __init__(self, sensor_neurons: list[str], motor_neurons: list[str], previous_weights: Union[NeuronWeightMatrix, None] = None) -> None:
+        self.shape = (len(sensor_neurons), len(motor_neurons))
+        self.sensors = { sensor_neurons[x]: x for x in range(len(sensor_neurons)) }
+        self.motors = { motor_neurons[x]: x for x in range(len(motor_neurons)) }
+        self.matrix = np.full(self.shape, np.nan)
+
+        if previous_weights is not None:
+            generator_sensors = (sensor for sensor in self.sensors if sensor in previous_weights.get_sensors())
+            generator_motors = (motor for motor in self.motors if motor in previous_weights.get_motors())
+
+            for sensor in generator_sensors:
+                for motor in generator_motors:
+                    self_sensor_index = self.sensors[sensor]
+                    self_motor_index = self.motors[motor]
+                    previous_sensor_index = previous_weights.get_sensors()[sensor]
+                    previous_motor_index = previous_weights.get_motors()[motor]
+                    self.matrix[self_sensor_index, self_motor_index] = previous_weights.get_weights[previous_sensor_index, previous_motor_index]
+
+        self.matrix[np.isnan(self.matrix)] = np.random.randn(len(self.matrix[np.isnan(self.matrix)]))
+
+    def get_sensors(self):
+        return self.sensors
+    
+    def get_motors(self):
+        return self.motors
+    
+    def get_weights(self):
+        return self.matrix
+    
+    def set_weights(self, weights):
+        self.matrix = weights
+    
+    def get(self, sensor, motor):
+        sensor_index = self.sensors[sensor]
+        motor_index = self.motors[motor]
+        return self.matrix[sensor_index, motor_index]

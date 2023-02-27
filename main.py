@@ -1,8 +1,8 @@
 import os
 import random
 import time
-from build_body import *
-from generate_body_cons import *
+from body_builder import *
+from body_mutator import *
 import pybullet as pblt
 import constants as Cnsts
 
@@ -13,13 +13,13 @@ initial_body_plan = copy.deepcopy(BASE_BODYPLAN)
 
 pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
-joint_names = build_body(initial_body_plan)
+joint_names, sensor_parts, abstract_centers = build_body(initial_body_plan)
 
 pyrosim.End()
 
 pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
-build_brain(initial_body_plan, joint_names)
+weight_matrix = build_brain(joint_names, sensor_parts)
 
 pyrosim.End()
 
@@ -29,14 +29,18 @@ for i in range(Cnsts.num_random_bodies):
     solution_id = 0
 
     running = True
+
+    joint_names = []
+    sensor_parts = []
+
     while running:
         try:
 
-            mutated_body_plan = run_mutation(initial_body_plan, 20)
+            mutated_body_plan = run_mutator(initial_body_plan, BASE_BODYCONS_ID, 20)
 
             pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
-            joint_names, abstract_centers = build_body(mutated_body_plan)
+            joint_names, sensor_parts, abstract_centers = build_body(mutated_body_plan)
 
             pyrosim.End()
 
@@ -50,9 +54,10 @@ for i in range(Cnsts.num_random_bodies):
             os.system("rm ./data/robot/body{}.urdf".format(solution_id))
             print("invalid body plan, retrying")
 
+    
     pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
-    build_brain(mutated_body_plan, joint_names)
+    weight_matrix = build_brain(joint_names, sensor_parts)
 
     pyrosim.End()
 
