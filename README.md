@@ -32,6 +32,8 @@ The best fitness of each of the five evolutionary runs at each generation is als
 
 ![Best fitness per generation](data/output/fitness_curves.png)
 
+Each run in the above figure used a different random seed.
+
 ## The pyro-corpus body generation method
 
 pyro-corpus consists of two parts:
