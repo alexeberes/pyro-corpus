@@ -243,7 +243,143 @@ class FixedSizeSensorPiece(BodyPart):
             color=('Green', [0.0, 1.0, 0.0, 1.0]))
 
         return center, size
+
+class PurpleBodyPart(BodyPart):
     
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['sensor'] = False
+        self.properties['joint'] = 'fixed'
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Purple', [113/255, 55/255, 200/255, 1.0]))
+
+        return center, size
+    
+class RedBodyPart(BodyPart):
+    
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['joint'] = 'fixed'
+        self.properties['sensor'] = False
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Red', [200/255, 55/255, 55/255, 1.0]))
+
+        return center, size
+
+class BlueBodyPart(BodyPart):
+    
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['joint'] = 'fixed'
+        self.properties['sensor'] = False
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Blue', [55/255, 171/255, 200/255, 1.0]))
+
+        return center, size
+      
+class GreenBodyPart(BodyPart):
+    
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['joint'] = 'fixed'
+        self.properties['sensor'] = False
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Green', [55/255, 200/255, 55/255, 1.0]))
+
+        return center, size
+    
+class YellowBodyPart(BodyPart):
+    
+    def __init__(self, size: float=1):
+        super().__init__()
+        self.properties['sensor'] = False
+        self.properties['joint'] = 'fixed'
+        self.size = size
+
+    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(self.size, self.size, self.size)
+
+        center: Position = add_xyz(
+            upstream_position,
+            element_wise_multiplication_xyz(
+                scalar_multiplication_xyz(
+                    -0.5,
+                    size),
+                attachment_point_on_child.value))
+
+        pyrosim.Send_Cube(
+            name=str(piece_id),
+            pos=list(center),
+            size=list(size),
+            color=('Yellow', [255/255, 204/255, 0/255, 1.0]))
+
+        return center, size
+    
+
 class FixedSizeUnmovableBodyPiece(BodyPart):
     
     def __init__(self, size: float=1):
