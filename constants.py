@@ -1,10 +1,10 @@
 import numpy as np
 
-num_iterations = 10
+num_iterations = 1000
 
-sleep_time = 0.001/60
+sleep_time = 1/60
 
-num_generations = 50
+num_generations = 1
 
 motor_joint_range = .2
 
@@ -15,8 +15,8 @@ default_fitness = 0
 mutation_rate = 0.75
 mutation_magnitude = 2
 
-generation_size = 4
-number_of_children = 5
+generation_size = 2
+number_of_children = 1
 family_filter_size = 3
 random_members = 3
 
