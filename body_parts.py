@@ -192,7 +192,6 @@ class RandomSizeSensorPiece(BodyPart):
 
         return center, size
     
-
 class FixedSizeBodyPiece(BodyPart):
     
     def __init__(self, size: float=1):
