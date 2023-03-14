@@ -7,4 +7,4 @@ genome_file = sys.argv[1]
 print(genome_file)
 
 with open(genome_file, "rb") as file:
-    print(pickle.load(genome_file))
+    print(pickle.load(file))
