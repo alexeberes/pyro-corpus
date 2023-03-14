@@ -2,8 +2,8 @@ import numpy as np
 import pybullet as pblt
 from sensor import Sensor
 from motor import Motor
-import pyrosim_modded.pyrosim_modded as pyrosim
-from pyrosim_modded.neuralNetwork import NEURAL_NETWORK
+import pyrosim_z as psz
+from pyrosim_z.neuralNetwork import NEURAL_NETWORK
 import time
 import constants as Cnsts
 
@@ -16,7 +16,7 @@ class Robot:
 
         self.solution_id = solution_id
 
-        pyrosim.Prepare_To_Simulate(self.id)
+        psz.Prepare_To_Simulate(self.id)
 
         self.prepare_to_sense()
         self.prepare_to_act()
@@ -27,12 +27,12 @@ class Robot:
 
     def prepare_to_sense(self):
         self.sensors = {}
-        for link_name in pyrosim.linkNamesToIndices:
+        for link_name in psz.get_link_names_to_indices():
             self.sensors[link_name] = Sensor(link_name)
 
     def prepare_to_act(self):
         self.motors = {}
-        for joint_name in pyrosim.jointNamesToIndices:
+        for joint_name in psz.get_joint_names_to_indices():
             self.motors[joint_name] = Motor(joint_name)
 
     def prepare_to_think(self):
@@ -66,13 +66,4 @@ class Robot:
         link_0_x = base_pos[0]
         link_0_y = base_pos[1]
         link_0_z = base_pos[2]
-        self.save_fitness(link_0_y)
-
-    def save_fitness(self, fitness) -> None:
-        time.sleep(0.02)
-        with open("./data/robot/tmp_fitness{}.txt".format(self.solution_id), 'w') as f:
-            f.write(str(fitness))
-            time.sleep(0.02)
-            f.close()
-        os.system("mv ./data/robot/tmp_fitness{}.txt ./data/robot/robot_fitness{}.txt".format(self.solution_id, self.solution_id))
-
+        return float(link_0_y)

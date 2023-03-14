@@ -1,5 +1,5 @@
 import numpy as np
-import pyrosim_modded.pyrosim_modded as pyrosim
+import pyrosim_z as psz
 import pybullet as pblt
 from datetime import datetime
 import constants as c
@@ -11,7 +11,7 @@ class Motor:
         self.max_force = 25
 
     def set_value(self, robot, desired_angle):
-        pyrosim.Set_Motor_For_Joint(
+        psz.Set_Motor_For_Joint(
                 bodyIndex= robot.id,
                 jointName= self.joint_name,
                 controlMode= pblt.POSITION_CONTROL,

@@ -1,5 +1,5 @@
 from __future__ import annotations
-import pyrosim_modded.pyrosim_modded as pyrosim
+import pyrosim_z as psz
 from typing import NamedTuple
 from body_parts import *
 import random
@@ -11,12 +11,12 @@ def build_neurons(joint_names: list[str], sensor_parts: list[str]):
 
     for part_id in sensor_parts:
         sensor_neuron_name = "SNx" + str(part_id) + "x"
-        pyrosim.Send_Sensor_Neuron(name=sensor_neuron_name, linkName=str(part_id))
+        psz.Send_Sensor_Neuron(name=sensor_neuron_name, linkName=str(part_id))
         sensor_neurons.append(sensor_neuron_name)
 
     for joint_name in joint_names:
         motor_neuron_name = "MNx" + joint_name + "x"
-        pyrosim.Send_Motor_Neuron(name=motor_neuron_name, jointName=joint_name)
+        psz.Send_Motor_Neuron(name=motor_neuron_name, jointName=joint_name)
         motor_neurons.append(motor_neuron_name)
 
     return sensor_neurons, motor_neurons
@@ -26,7 +26,7 @@ def build_synapses(weights: NeuronWeightMatrix):
     motor_neurons: list[str]    = list(weights.get_motors().keys())
     for sensor_neuron in sensor_neurons:
         for motor_neuron in motor_neurons:
-            pyrosim.Send_Synapse(
+            psz.Send_Synapse(
                 sourceNeuronName=sensor_neuron,
                 targetNeuronName=motor_neuron,
                 weight=weights.get(sensor_neuron, motor_neuron)
@@ -80,7 +80,7 @@ def build_body(body_plan: BodyCons):
 
         my_center, my_size = body_part.create_body_part(
             upstream_position=upstream_position,
-            attachment_point_on_child=get_opposite_cube_element(direction_to_build),
+            attachment_point_on_child=direction_to_build,
             piece_id=current_part_id)
         
         if body_part.get_properties()['sensor'] == True or body_part.get_properties()['brain'] == True:
@@ -143,18 +143,18 @@ if __name__ == '__main__':
 
     solution_id = 0
 
-    pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
+    psz.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
     joint_names, sensor_parts, abstract_centers = build_body(body_plan)
 
-    pyrosim.End()
+    psz.end()
 
     print(joint_names)
     print(sensor_parts)
     print(abstract_centers)
 
-    pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
+    psz.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
     weight_matrix = build_brain(joint_names, sensor_parts)
 
-    pyrosim.End()
+    psz.end()

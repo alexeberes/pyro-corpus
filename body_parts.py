@@ -1,5 +1,5 @@
 from __future__ import annotations
-import pyrosim_modded.pyrosim_modded as pyrosim
+import pyrosim_z as psz
 from typing import NamedTuple
 from typing import Union
 from enum import Enum
@@ -116,7 +116,7 @@ def create_joint(upstream_center: Position, parent_part_size: Dimensions, joint_
             joint_attachment_element.value)
         )
     
-    pyrosim.Send_Joint(
+    psz.send_joint(
         name=joint_name,
         parent=str(parent_part_id),
         child=str(current_part_id),
@@ -148,22 +148,24 @@ class RandomSizeBodyPiece(BodyPart):
         super().__init__()
         self.properties['sensor'] = False
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
         size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Blue', [0.0, 0.0, 1.0, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Blue',
+            color=[0.0, 0.0, 1.0, 1.0])
 
         return center, size
     
@@ -173,22 +175,24 @@ class RandomSizeSensorPiece(BodyPart):
         super().__init__()
         self.properties['sensor'] = True
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
         size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Green', [0.0, 1.0, 0.0, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Green',
+            color=[0.0, 1.0, 0.0, 1.0])
 
         return center, size
     
@@ -199,22 +203,24 @@ class FixedSizeBodyPiece(BodyPart):
         self.properties['sensor'] = False
         self.size = size
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size: Dimensions = Dimensions(self.size, self.size, self.size)
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Blue', [0.0, 0.0, 1.0, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Blue',
+            color=[0.0, 0.0, 1.0, 1.0])
 
         return center, size
     
@@ -225,22 +231,24 @@ class FixedSizeSensorPiece(BodyPart):
         self.properties['sensor'] = True
         self.size = size
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size: Dimensions = Dimensions(self.size, self.size, self.size)
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Green', [0.0, 1.0, 0.0, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Green', 
+            color=[0.0, 1.0, 0.0, 1.0])
 
         return center, size
     
@@ -252,22 +260,24 @@ class FixedSizeUnmovableBodyPiece(BodyPart):
         self.properties['joint'] = 'fixed'
         self.size = size
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size: Dimensions = Dimensions(self.size, self.size, self.size)
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Purple', [0.5, 0.0, 0.5, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Purple',
+            color=[0.5, 0.0, 0.5, 1.0])
 
         return center, size
     
@@ -279,22 +289,24 @@ class FixedSizeUnmovableSensorPiece(BodyPart):
         self.properties['joint'] = 'fixed'
         self.size = size
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size: Dimensions = Dimensions(self.size, self.size, self.size)
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Orange', [1.0, 0.35, 0.2, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Orange',
+            color=[1.0, 0.35, 0.2, 1.0])
 
         return center, size
     
@@ -307,22 +319,24 @@ class FixedSizedUnchangeableBrain(BodyPart):
         self.properties['brain'] = True
         self.size = size
 
-    def create_body_part(self, upstream_position: Position, attachment_point_on_child: CubeElement, piece_id: int) -> tuple(Position, Dimensions):
-        size: Dimensions = Dimensions(self.size, self.size, self.size)
+    def create_body_part(self, attachment_point_on_child: CubeElement, piece_id: int, upstream_position: Position = Position(0, 0, 0)) -> tuple(Position, Dimensions):
+        size: Dimensions = Dimensions(*create_random_xyz(Dimensions(0.2, 0.2, 0.1), Dimensions(1, 1, 0.6)))
 
         center: Position = add_xyz(
-            upstream_position,
+            upstream_position, #ONLY USED IN INITIAL PIECE
             element_wise_multiplication_xyz(
                 scalar_multiplication_xyz(
-                    -0.5,
+                    0.5,
                     size),
                 attachment_point_on_child.value))
 
-        pyrosim.Send_Cube(
+        psz.send_link(
             name=str(piece_id),
-            pos=list(center),
-            size=list(size),
-            color=('Black', [0.0, 0.0, 0.0, 1.0]))
+            pos_xyz=list(center),
+            shape="box",
+            size_string="{} {} {}".format(*list(size)),
+            color_name='Black',
+            color=[0.0, 0.0, 0.0, 1.0])
 
         return center, size
 

@@ -24,16 +24,16 @@ if __name__ == '__main__':
 
     solution_id = 0
 
-    pyrosim.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
+    psz.Start_URDF("./data/robot/body{}.urdf".format(solution_id))
 
     joint_names, sensor_parts, abstract_centers = build_body(body_plan)
 
-    pyrosim.End()
+    psz.end()
 
-    pyrosim.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
+    psz.Start_NeuralNetwork("./data/robot/brain{}.nndf".format(solution_id))
 
     weight_matrix = build_brain(joint_names, sensor_parts)
 
-    pyrosim.End()
+    psz.end()
 
     simulate()

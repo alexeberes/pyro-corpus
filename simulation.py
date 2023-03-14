@@ -33,8 +33,8 @@ class Simulation:
             if self.pblt_mthd != "DIRECT":
                 time.sleep(c.sleep_time)
 
-    def get_fitness(self) -> None:
-        self.robot.get_fitness()
+    def get_fitness(self) -> float:
+        return self.robot.get_fitness()
 
     def __del__(self):
         pblt.disconnect()

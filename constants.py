@@ -15,7 +15,7 @@ default_fitness = 0
 mutation_rate = 0.75
 mutation_magnitude = 2
 
-generation_size = 2
+generation_size = 20
 number_of_children = 1
 family_filter_size = 3
 random_members = 3

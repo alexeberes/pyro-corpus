@@ -14,12 +14,14 @@ import body_mutator
 import brain_mutator
 from body_parts import *
 
-class FAERYvPyrCor1:
-    # FAERYvPyrCor1: Family Aware EvolutionaRY algorithm for pyro-corpus 1
+import multiprocessing as mp
+
+
+class FAERYvPyrCor1MP:
+    # FAERYvPyrCor1MP: Family Aware EvolutionaRY algorithm for pyro-corpus 1 with multiprocessing
     # Based off of pyroFAE3
     
     def __init__(self) -> None:
-        os.system("rm ./data/robot/robot_fitness*.txt")
         os.system("rm ./data/robot/brain*.nndf")
         os.system("rm ./data/robot/body*.urdf")
         self.parents = {}
@@ -43,7 +45,6 @@ class FAERYvPyrCor1:
         self.evaluate(self.parents)
 
         for generation in range(Cnsts.num_generations):
-            os.system("rm ./data/robot/robot_fitness*.txt")
             os.system("rm ./data/robot/brain*.nndf")
             os.system("rm ./data/robot/body*.urdf")
             self.evolve_for_one_generation(generation)
@@ -51,16 +52,18 @@ class FAERYvPyrCor1:
         return self.show_best()
 
     def evaluate(self, solutions) -> None:
-        n = Cnsts.num_simulations_at_once
-        solution_chunks = [list(solutions.keys())[i: i + n] for i in range(0, len(solutions), n)]
-        for solution_chunk in solution_chunks:
-            for key in solution_chunk:
-                solution = solutions[key]
-                solution.start_simulation()
-            
-            for key in solution_chunk:
-                solution = solutions[key]
-                solution.wait_for_simulation_to_end()
+        for solution in solutions.values():
+            solution.generate_body()
+            solution.generate_brain()
+        pool = mp.Pool(mp.cpu_count())
+        results = pool.map(self.run_simulation, solutions.values(), chunksize=mp.cpu_count())
+        for result_tuple in results:
+            solutions[result_tuple[0]].set_fitness(result_tuple[1])
+        pool.close()
+
+    def run_simulation(self, solution):
+        solution_fitness = solution.start_simulation()
+        return (solution.solution_id, solution_fitness)
     
     def evolve_for_one_generation(self, generation):
         self.produce_children(generation)
@@ -84,16 +87,16 @@ class FAERYvPyrCor1:
             try:
                 mutated_body_chromosome, new_bodycons_id = body_mutator.mutate(genome_to_mutate.body_chromosome, genome_to_mutate.bodycons_id)
 
-                pyrosim.Start_URDF("./data/robot/body{}.urdf".format(genome_id))
+                psz.Start_URDF("./data/robot/body{}.urdf".format(genome_id))
 
                 body_builder.build_body(mutated_body_chromosome)
 
-                pyrosim.End()
+                psz.end()
 
                 running = False
 
             except:
-                pyrosim.End()
+                psz.end()
                 os.system("rm ./data/robot/body{}.urdf".format(genome_id))
                 print("invalid body plan, retrying")
         

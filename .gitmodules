@@ -1,0 +1,3 @@
+[submodule "pyrosim_z"]
+	path = pyrosim_z
+	url = git@gitlab.com:virtual-robotics/pyrosim_z.git
