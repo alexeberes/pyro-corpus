@@ -52,9 +52,6 @@ class FAERYvPyrCor1MP:
         return self.show_best()
 
     def evaluate(self, solutions) -> None:
-        for solution in solutions.values():
-            solution.generate_body()
-            solution.generate_brain()
         pool = mp.Pool(mp.cpu_count())
         results = pool.map(self.run_simulation, solutions.values(), chunksize=mp.cpu_count())
         for result_tuple in results:

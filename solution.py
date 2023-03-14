@@ -23,6 +23,8 @@ class Solution:
         self.mutation_magnitude = Cnsts.mutation_magnitude
 
     def start_simulation(self, pybullet_method = "DIRECT") -> None:
+        self.generate_body()
+        self.generate_brain()
         simulation = Simulation(pybullet_method, self.solution_id)
         simulation.run()
         return simulation.get_fitness()
