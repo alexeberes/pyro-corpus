@@ -4,7 +4,6 @@ from typing import NamedTuple
 from typing import Union
 from enum import Enum
 import random
-from bidict import bidict
 import numpy as np
 
 VALID_CUBE_ELEMENTS = (1, 6)
@@ -37,29 +36,6 @@ class CubeElement(Enum):
     BACK_RIGHT_BOTTOM   = (-1, 1, -1)
     BACK_LEFT_TOP       = (-1, -1, 1)
     BACK_LEFT_BOTTOM    = (-1, -1, -1)
-
-OPPOSITE_ELEMENTS = bidict({
-    CubeElement.CENTER              :   CubeElement.CENTER,
-    CubeElement.FRONT               :   CubeElement.BACK,
-    CubeElement.RIGHT               :   CubeElement.LEFT,
-    CubeElement.TOP                 :   CubeElement.BOTTOM,
-    CubeElement.FRONT_RIGHT         :   CubeElement.BACK_LEFT,
-    CubeElement.FRONT_LEFT          :   CubeElement.BACK_RIGHT,
-    CubeElement.FRONT_TOP           :   CubeElement.BACK_BOTTOM,
-    CubeElement.FRONT_BOTTOM        :   CubeElement.BACK_TOP,
-    CubeElement.RIGHT_TOP           :   CubeElement.LEFT_BOTTOM,
-    CubeElement.RIGHT_BOTTOM        :   CubeElement.LEFT_TOP,
-    CubeElement.FRONT_RIGHT_TOP     :   CubeElement.BACK_LEFT_BOTTOM,
-    CubeElement.FRONT_RIGHT_BOTTOM  :   CubeElement.BACK_LEFT_TOP,
-    CubeElement.FRONT_LEFT_TOP      :   CubeElement.BACK_RIGHT_BOTTOM,
-    CubeElement.FRONT_LEFT_BOTTOM   :   CubeElement.BACK_RIGHT_TOP
-})
-
-def get_opposite_cube_element(cube_element: CubeElement):
-    try:
-        return OPPOSITE_ELEMENTS[cube_element]
-    except:
-        return OPPOSITE_ELEMENTS.inverse[cube_element][0]
 
 class Axes(Enum):
     X   =   [1, 0, 0]
